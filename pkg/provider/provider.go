@@ -24,7 +24,7 @@ func NewProviderFunc(reg []registration.ServiceRegistration, pf ConfigureFunc) p
 		dataSources := make(map[string]*schema.Resource)
 		resources := make(map[string]*schema.Resource)
 		// providerSchema is the Schema for the provider
-		providerSchema := make(map[string]*schema.Schema)
+		providerSchema := Schema()
 		for _, service := range reg {
 			for k, v := range service.SupportedDataSources() {
 				// We panic if the data-source name k is repeated in dataSources
@@ -52,42 +52,6 @@ func NewProviderFunc(reg []registration.ServiceRegistration, pf ConfigureFunc) p
 			}
 		}
 
-		providerSchema["iam_service_url"] = &schema.Schema{
-			Type:        schema.TypeString,
-			Optional:    true,
-			DefaultFunc: schema.EnvDefaultFunc("HPEGL_IAM_SERVICE_URL", "https://client.greenlake.hpe.com/api/iam"),
-			Description: `The IAM service URL to be used to generate tokens, defaults to production GLC,
-				can be set by HPEGL_IAM_SERVICE_URL env-var`,
-		}
-
-		providerSchema["api_vended_service_client"] = &schema.Schema{
-			Type:        schema.TypeBool,
-			Optional:    true,
-			DefaultFunc: schema.EnvDefaultFunc("HPEGL_API_VENDED_SERVICE_CLIENT", true),
-			Description: ``,
-		}
-
-		providerSchema["tenant_id"] = &schema.Schema{
-			Type:        schema.TypeString,
-			Optional:    true,
-			DefaultFunc: schema.EnvDefaultFunc("HPEGL_TENANT_ID", ""),
-			Description: "The tenant-id to be used, can be set by HPEGL_TENANT_ID env-var",
-		}
-
-		providerSchema["user_id"] = &schema.Schema{
-			Type:        schema.TypeString,
-			Optional:    true,
-			DefaultFunc: schema.EnvDefaultFunc("HPEGL_USER_ID", ""),
-			Description: "The user id to be used, can be set by HPEGL_USER_ID env-var",
-		}
-
-		providerSchema["user_secret"] = &schema.Schema{
-			Type:        schema.TypeString,
-			Optional:    true,
-			DefaultFunc: schema.EnvDefaultFunc("HPEGL_USER_SECRET", ""),
-			Description: "The user secret to be used, can be set by HPEGL_USER_SECRET env-var",
-		}
-
 		p := schema.Provider{
 			Schema:         providerSchema,
 			ResourcesMap:   resources,
@@ -101,6 +65,47 @@ func NewProviderFunc(reg []registration.ServiceRegistration, pf ConfigureFunc) p
 
 		return &p
 	}
+}
+
+func Schema() map[string]*schema.Schema {
+	providerSchema := make(map[string]*schema.Schema)
+	providerSchema["iam_service_url"] = &schema.Schema{
+		Type:        schema.TypeString,
+		Optional:    true,
+		DefaultFunc: schema.EnvDefaultFunc("HPEGL_IAM_SERVICE_URL", "https://client.greenlake.hpe.com/api/iam"),
+		Description: `The IAM service URL to be used to generate tokens, defaults to production GLC,
+			can be set by HPEGL_IAM_SERVICE_URL env-var`,
+	}
+
+	providerSchema["api_vended_service_client"] = &schema.Schema{
+		Type:        schema.TypeBool,
+		Optional:    true,
+		DefaultFunc: schema.EnvDefaultFunc("HPEGL_API_VENDED_SERVICE_CLIENT", true),
+		Description: ``,
+	}
+
+	providerSchema["tenant_id"] = &schema.Schema{
+		Type:        schema.TypeString,
+		Optional:    true,
+		DefaultFunc: schema.EnvDefaultFunc("HPEGL_TENANT_ID", ""),
+		Description: "The tenant-id to be used, can be set by HPEGL_TENANT_ID env-var",
+	}
+
+	providerSchema["user_id"] = &schema.Schema{
+		Type:        schema.TypeString,
+		Optional:    true,
+		DefaultFunc: schema.EnvDefaultFunc("HPEGL_USER_ID", ""),
+		Description: "The user id to be used, can be set by HPEGL_USER_ID env-var",
+	}
+
+	providerSchema["user_secret"] = &schema.Schema{
+		Type:        schema.TypeString,
+		Optional:    true,
+		DefaultFunc: schema.EnvDefaultFunc("HPEGL_USER_SECRET", ""),
+		Description: "The user secret to be used, can be set by HPEGL_USER_SECRET env-var",
+	}
+
+	return providerSchema
 }
 
 // ServiceRegistrationSlice helper function to return []registration.ServiceRegistration from

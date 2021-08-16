@@ -21,6 +21,7 @@ const retryLimit = 3
 // Assert that Handler implements common.TokenChannelInterface
 var _ common.TokenChannelInterface = (*Handler)(nil)
 
+//go:generate mockgen -build_flags=-mod=mod -destination=../../mocks/IdentityAPI_mocks.go -package=mocks github.com/hewlettpackard/hpegl-provider-lib/pkg/token/serviceclient IdentityAPI
 type IdentityAPI interface {
 	GenerateToken(context.Context, string, string, string) (string, error)
 }

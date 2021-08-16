@@ -4,3 +4,5 @@ bin/
 build/
 *.tfstate
 .terraform/
+coverage/go/coverage.out
+coverage/go/html/main.html
