@@ -7,8 +7,8 @@ import (
 	"testing"
 
 	"github.com/golang/mock/gomock"
-
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+
 	"github.com/hewlettpackard/hpegl-provider-lib/pkg/mocks"
 	"github.com/hewlettpackard/hpegl-provider-lib/pkg/provider"
 	"github.com/hewlettpackard/hpegl-provider-lib/pkg/token/retrieve"
@@ -46,7 +46,6 @@ func generateTestToken(timeToExpiry int64) string {
 
 func TestHandler(t *testing.T) {
 	t.Parallel()
-	d := schema.TestResourceDataRaw(t, provider.Schema(), make(map[string]interface{}))
 	ctrl := gomock.NewController(t)
 	ctx, cancel := context.WithCancel(context.Background())
 	testcases := []struct {
@@ -94,6 +93,7 @@ func TestHandler(t *testing.T) {
 		tc := testcase
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
+			d := schema.TestResourceDataRaw(t, provider.Schema(), make(map[string]interface{}))
 			mock := mocks.NewMockIdentityAPI(ctrl)
 
 			err := d.Set("api_vended_service_client", tc.useAPIVendedToken)

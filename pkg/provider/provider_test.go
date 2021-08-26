@@ -6,9 +6,8 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
-	"github.com/hewlettpackard/hpegl-provider-lib/pkg/token/common"
-	"github.com/hewlettpackard/hpegl-provider-lib/pkg/token/retrieve"
-	"github.com/hewlettpackard/hpegl-provider-lib/pkg/token/serviceclient"
+	"github.com/hewlettpackard/hpegl-provider-lib/pkg/registration"
+	"github.com/stretchr/testify/assert"
 )
 
 func testResource() *schema.Resource {
@@ -16,12 +15,13 @@ func testResource() *schema.Resource {
 }
 
 type Registration struct {
+	serviceName string
 	resources   map[string]*schema.Resource
 	datasources map[string]*schema.Resource
 }
 
 func (r Registration) Name() string {
-	return "test-service"
+	return r.serviceName
 }
 
 func (r Registration) SupportedDataSources() map[string]*schema.Resource {
@@ -38,62 +38,133 @@ func (r Registration) ProviderSchemaEntry() *schema.Resource {
 	}
 }
 
-type client struct{}
-
-func (c *client) NewClient(r *schema.ResourceData) (interface{}, error) {
-	return nil, nil
-}
-
-func (c *client) ServiceName() string {
-	return "test-service"
-}
-
 func providerConfigure(p *schema.Provider) schema.ConfigureContextFunc { // nolint staticcheck
 	return func(ctx context.Context, d *schema.ResourceData) (interface{}, diag.Diagnostics) {
-		c := &client{}
-		cli, err := c.NewClient(d)
-		if err != nil {
-			return nil, diag.Errorf("error in creating client: %s", err)
-		}
-		// Initialise token handler
-		h, err := serviceclient.NewHandler(d)
-		if err != nil {
-			return nil, diag.FromErr(err)
-		}
-
-		return map[string]interface{}{
-			c.ServiceName():                 cli,
-			common.TokenRetrieveFunctionKey: retrieve.NewTokenRetrieveFunc(h),
-		}, nil
+		return nil, nil
 	}
 }
 
 func TestNewProviderFunc(t *testing.T) {
+	t.Parallel()
 	testcases := []struct {
-		name        string
-		resources   map[string]*schema.Resource
-		datasources map[string]*schema.Resource
+		name     string
+		regs     []Registration
+		panicMsg string
 	}{
 		{
 			name: "success",
-			resources: map[string]*schema.Resource{
-				"test-resource": testResource(),
+			regs: []Registration{
+				{
+					serviceName: "test-service",
+					resources: map[string]*schema.Resource{
+						"test-resource": testResource(),
+					},
+					datasources: map[string]*schema.Resource{
+						"test-datasource": testResource(),
+					},
+				},
 			},
-			datasources: map[string]*schema.Resource{
-				"test-datasource": testResource(),
+		},
+		{
+			name: "success two services",
+			regs: []Registration{
+				{
+					serviceName: "test-service",
+					resources: map[string]*schema.Resource{
+						"test-resource": testResource(),
+					},
+					datasources: map[string]*schema.Resource{
+						"test-datasource": testResource(),
+					},
+				},
+				{
+					serviceName: "test-service2",
+					resources: map[string]*schema.Resource{
+						"test-resource2": testResource(),
+					},
+					datasources: map[string]*schema.Resource{
+						"test-datasource2": testResource(),
+					},
+				},
 			},
+		},
+		{
+			name: "duplicate resource",
+			regs: []Registration{
+				{
+					serviceName: "test-service",
+					resources: map[string]*schema.Resource{
+						"test-resource": testResource(),
+					},
+				},
+				{
+					serviceName: "test-service2",
+					resources: map[string]*schema.Resource{
+						"test-resource": testResource(),
+					},
+				},
+			},
+			panicMsg: "resource name test-resource is repeated in service test-service2",
+		},
+		{
+			name: "duplicate data source",
+			regs: []Registration{
+				{
+					serviceName: "test-service",
+					datasources: map[string]*schema.Resource{
+						"test-datasource": testResource(),
+					},
+				},
+				{
+					serviceName: "test-service2",
+					datasources: map[string]*schema.Resource{
+						"test-datasource": testResource(),
+					},
+				},
+			},
+			panicMsg: "data-source name test-datasource is repeated in service test-service2",
+		},
+		{
+			name: "duplicate service name",
+			regs: []Registration{
+				{
+					serviceName: "test-service",
+				},
+				{
+					serviceName: "test-service",
+				},
+			},
+			panicMsg: "service name test-service is repeated",
 		},
 	}
 
 	for _, testcase := range testcases {
 		tc := testcase
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+			var regs []registration.ServiceRegistration
 
-		reg := Registration{
-			resources:   tc.resources,
-			datasources: tc.datasources,
-		}
+			if len(tc.regs) == 1 {
+				regs = ServiceRegistrationSlice(tc.regs[0])
+			} else {
+				regs = make([]registration.ServiceRegistration, len(tc.regs))
+				for i, reg := range tc.regs {
+					regs[i] = reg
+				}
+			}
 
-		provFunc := NewProviderFunc(ServiceRegistrationSlice(reg), providerConfigure)
-		provFunc()
+			defer func() {
+				r := recover()
+				if r != nil {
+					if tc.panicMsg != "" {
+						assert.Equal(t, tc.panicMsg, r)
+					} else {
+						assert.Equal(t, nil, r)
+					}
+				}
+			}()
+
+			NewProviderFunc(regs, providerConfigure)()
+		})
 	}
 }
