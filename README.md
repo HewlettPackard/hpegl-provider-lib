@@ -24,6 +24,8 @@
         + [pkg/token/serviceclient](#pkgtokenserviceclient)
             - [Use in service provider repos](#use-in-service-provider-repos-5)
             - [Use in hpegl provider](#use-in-hpegl-provider-5)
+	* [pkg/utils](#pkgutils)
+		+ [Example use](#example-use)
 
 # hpegl-provider-lib
 
@@ -779,5 +781,45 @@ func NewClientMap(ctx context.Context, d *schema.ResourceData) (map[string]inter
     ...
 	
 	return c, nil
+}
+```
+
+## pkg/utils
+
+This package provides utilities to read yaml config file values using the viper package. 
+This package is intended to be used as part of the acceptance test framework for service teams and the hpegl-terraform-provider. 
+
+The utils package has a ReadAccConfig() function. 
+The function searches for a yaml config file with the name equal to the value of TF_ACC_CONFIG environment variable. 
+TF_ACC environment variable must be set to true for the function to be executed. 
+The code panics if the config file is not found.
+```go
+func ReadAccConfig(path string) {
+	if os.Getenv("TF_ACC") == "true" {
+		viper.AddConfigPath(path)
+		viper.SetConfigType("yaml")
+		viper.SetConfigName(os.Getenv("TF_ACC_CONFIG"))
+		err := viper.ReadInConfig()
+		if err != nil {
+			panic("fatal error config file: " + err.Error())
+		}
+	}
+}
+```
+
+### Example use
+NOTE: Yaml config files must be stored in the root directory for all service teams. 
+
+```go
+package main
+
+import (
+	"github.com/hewlettpackard/hpegl-provider-lib/pkg/utils"
+)
+
+func main() {
+	// Read config file for acceptance test if TF_ACC is set
+	// path parameter equal to root directory
+	utils.ReadAccConfig(".")
 }
 ```
