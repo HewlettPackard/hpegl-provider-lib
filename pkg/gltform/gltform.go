@@ -31,7 +31,7 @@ type Gljwt struct {
 func GetGLConfig() (gljwt *Gljwt, err error) {
 	homeDir, _ := os.UserHomeDir()
 	workingDir, _ := os.Getwd()
-	for _, p := range []string{homeDir, workingDir} {
+	for _, p := range []string{workingDir, homeDir} {
 		gljwt, err = loadGLConfig(p)
 		if err == nil {
 			break
@@ -43,7 +43,7 @@ func GetGLConfig() (gljwt *Gljwt, err error) {
 
 // WriteGLConfig takes a map[string]interface{} which will normally come from a
 // service block in the provider stanza and writes out a .gltform file in the directory
-// from which terraform is being run and in the home directory.  See the use of this function
+// from which terraform is being run.  See the use of this function
 // for bmaas in terraform-provider-hpegl.
 func WriteGLConfig(d map[string]interface{}) error {
 	config := &Gljwt{
@@ -60,10 +60,9 @@ func WriteGLConfig(d map[string]interface{}) error {
 	}
 
 	// Write out marshalled config into .gltform
-	homeDir, _ := os.UserHomeDir()
 	workingDir, _ := os.Getwd()
 
-	for _, p := range []string{homeDir, workingDir} {
+	for _, p := range []string{workingDir} {
 		err = writeGLConfigToFile(b, p)
 		if err != nil {
 			break
