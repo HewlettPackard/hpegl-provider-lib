@@ -3,7 +3,7 @@ module github.com/hewlettpackard/hpegl-provider-lib
 go 1.15
 
 require (
-	github.com/golang/mock v1.5.0
+	github.com/golang/mock v1.6.0
 	github.com/hashicorp/terraform-plugin-sdk/v2 v2.9.0
 	github.com/spf13/viper v1.8.1
 	github.com/stretchr/testify v1.7.0

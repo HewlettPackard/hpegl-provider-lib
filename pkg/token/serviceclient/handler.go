@@ -8,8 +8,6 @@ import (
 	"net"
 	"time"
 
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
-
 	"github.com/hewlettpackard/hpegl-provider-lib/pkg/token/common"
 	httpc "github.com/hewlettpackard/hpegl-provider-lib/pkg/token/httpclient"
 	tokenutil "github.com/hewlettpackard/hpegl-provider-lib/pkg/token/token-util"
@@ -49,8 +47,14 @@ func WithIdentityAPI(i IdentityAPI) CreateOpt {
 	}
 }
 
+// resourceData is a generic model which implements Get function.
+type resourceData interface {
+	Get(key string) interface{}
+}
+
 // NewHandler creates a new handler and returns the common.TokenChannelInterface interface
-func NewHandler(d *schema.ResourceData, opts ...CreateOpt) (common.TokenChannelInterface, error) {
+// Param resourceData can be *schema.ResourceData or any model which implements resourceData
+func NewHandler(d resourceData, opts ...CreateOpt) (common.TokenChannelInterface, error) {
 	h := new(Handler)
 
 	// set Handler fields
