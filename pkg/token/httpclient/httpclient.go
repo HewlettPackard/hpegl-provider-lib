@@ -8,9 +8,9 @@ import (
 	"strings"
 	"time"
 
-	"github.com/hewlettpackard/hpegl-provider-lib/pkg/token/identitytoken"
-	"github.com/hewlettpackard/hpegl-provider-lib/pkg/token/issuertoken"
-	tokenutil "github.com/hewlettpackard/hpegl-provider-lib/pkg/token/token-util"
+	"github.com/Hewlettpackard/hpegl-provider-lib/pkg/token/identitytoken"
+	"github.com/Hewlettpackard/hpegl-provider-lib/pkg/token/issuertoken"
+	tokenutil "github.com/Hewlettpackard/hpegl-provider-lib/pkg/token/token-util"
 )
 
 type Client struct {

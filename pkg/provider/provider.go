@@ -8,7 +8,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/plugin"
 
-	"github.com/hewlettpackard/hpegl-provider-lib/pkg/registration"
+	"github.com/Hewlettpackard/hpegl-provider-lib/pkg/registration"
 )
 
 // ConfigureFunc is a type definition of a function that returns a ConfigureContextFunc object

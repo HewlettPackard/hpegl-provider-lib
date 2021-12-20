@@ -12,7 +12,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/hewlettpackard/hpegl-provider-lib/pkg/token/errors"
+	"github.com/Hewlettpackard/hpegl-provider-lib/pkg/token/errors"
 	"gopkg.in/square/go-jose.v2"
 )
 

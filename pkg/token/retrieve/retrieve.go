@@ -5,7 +5,7 @@ package retrieve
 import (
 	"context"
 
-	"github.com/hewlettpackard/hpegl-provider-lib/pkg/token/common"
+	"github.com/Hewlettpackard/hpegl-provider-lib/pkg/token/common"
 )
 
 // TokenRetrieveFuncCtx type of function to retrieve a token passing-in a context

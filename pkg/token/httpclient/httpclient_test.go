@@ -10,8 +10,8 @@ import (
 	"net/http"
 	"testing"
 
-	"github.com/hewlettpackard/hpegl-provider-lib/pkg/token/identitytoken"
-	"github.com/hewlettpackard/hpegl-provider-lib/pkg/token/issuertoken"
+	"github.com/Hewlettpackard/hpegl-provider-lib/pkg/token/identitytoken"
+	"github.com/Hewlettpackard/hpegl-provider-lib/pkg/token/issuertoken"
 	"github.com/stretchr/testify/assert"
 )
 

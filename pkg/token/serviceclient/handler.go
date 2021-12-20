@@ -8,9 +8,9 @@ import (
 	"net"
 	"time"
 
-	"github.com/hewlettpackard/hpegl-provider-lib/pkg/token/common"
-	httpc "github.com/hewlettpackard/hpegl-provider-lib/pkg/token/httpclient"
-	tokenutil "github.com/hewlettpackard/hpegl-provider-lib/pkg/token/token-util"
+	"github.com/Hewlettpackard/hpegl-provider-lib/pkg/token/common"
+	httpc "github.com/Hewlettpackard/hpegl-provider-lib/pkg/token/httpclient"
+	tokenutil "github.com/Hewlettpackard/hpegl-provider-lib/pkg/token/token-util"
 )
 
 const retryLimit = 3
@@ -18,7 +18,7 @@ const retryLimit = 3
 // Assert that Handler implements common.TokenChannelInterface
 var _ common.TokenChannelInterface = (*Handler)(nil)
 
-//go:generate mockgen -build_flags=-mod=mod -destination=../../mocks/IdentityAPI_mocks.go -package=mocks github.com/hewlettpackard/hpegl-provider-lib/pkg/token/serviceclient IdentityAPI
+//go:generate mockgen -build_flags=-mod=mod -destination=../../mocks/IdentityAPI_mocks.go -package=mocks github.com/Hewlettpackard/hpegl-provider-lib/pkg/token/serviceclient IdentityAPI
 type IdentityAPI interface {
 	GenerateToken(context.Context, string, string, string) (string, error)
 }

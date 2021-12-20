@@ -11,12 +11,12 @@ import (
 	"github.com/golang/mock/gomock"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 
-	"github.com/hewlettpackard/hpegl-provider-lib/pkg/mocks"
-	"github.com/hewlettpackard/hpegl-provider-lib/pkg/provider"
-	"github.com/hewlettpackard/hpegl-provider-lib/pkg/token/retrieve"
-	"github.com/hewlettpackard/hpegl-provider-lib/pkg/token/serviceclient"
+	"github.com/Hewlettpackard/hpegl-provider-lib/pkg/mocks"
+	"github.com/Hewlettpackard/hpegl-provider-lib/pkg/provider"
+	"github.com/Hewlettpackard/hpegl-provider-lib/pkg/token/retrieve"
+	"github.com/Hewlettpackard/hpegl-provider-lib/pkg/token/serviceclient"
 
-	tokenutil "github.com/hewlettpackard/hpegl-provider-lib/pkg/token/token-util"
+	tokenutil "github.com/Hewlettpackard/hpegl-provider-lib/pkg/token/token-util"
 
 	"github.com/stretchr/testify/assert"
 	"gopkg.in/square/go-jose.v2"

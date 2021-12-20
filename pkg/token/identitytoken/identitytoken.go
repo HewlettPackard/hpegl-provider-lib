@@ -11,7 +11,7 @@ import (
 	"strings"
 	"time"
 
-	tokenutil "github.com/hewlettpackard/hpegl-provider-lib/pkg/token/token-util"
+	tokenutil "github.com/Hewlettpackard/hpegl-provider-lib/pkg/token/token-util"
 )
 
 const (
