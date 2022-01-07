@@ -51,6 +51,8 @@ type reader struct {
 
 // newReader retun new reader instance
 func newReader(t *testing.T, isResource bool, name string) *reader {
+	t.Helper()
+
 	return &reader{
 		t:          t,
 		isResource: isResource,
@@ -67,7 +69,7 @@ func (r *reader) skipf(format string, v ...interface{}) {
 	r.t.Skipf("[acc-test] test case for resource "+r.name+" is skipped. "+format, v...)
 }
 
-// parse variable decleration in 'vars:' field
+// parse variable declaration in 'vars:' field
 func (r *reader) readVars(v *viper.Viper) {
 	vars, ok := v.Get("vars").(map[string]interface{})
 	if !ok {
@@ -81,6 +83,7 @@ func (r *reader) readVars(v *viper.Viper) {
 
 // getViperConfig read a file using viper. The filepath to the test will determin by following logic
 // ${TF_ACC_TEST_PATH}/(resource/data-sources)/<name of the resource/data source without hpegl_service_name tag>
+//nolint:ifshort
 func (r *reader) getViperConfig(version string) *viper.Viper {
 	tfName := getLocalName(r.name)
 	if path := os.Getenv(AccTestPathKey); path != "" {
@@ -100,7 +103,7 @@ func (r *reader) getViperConfig(version string) *viper.Viper {
 	return v
 }
 
-// replaceVar replaces with varaibles with thier definition
+// replaceVar replaces with variables with their definition
 func (r *reader) replaceVar(vars map[string]interface{}, config string) string {
 	exp := `\$\([a-zA-Z_0-9]+\)`
 	reg := regexp.MustCompile(exp)
@@ -152,6 +155,7 @@ func parseMeta(data string) string {
 // currently we are only supporting json/tf validation. Here we can't use any
 // meta function (such as len() or greatedThan() etc) on validation, but can be included
 // in near future
+//nolint:forcetypeassert
 func (r *reader) parseValidations(vip *viper.Viper, i int) []validation {
 	vls, ok := vip.Get(fmt.Sprintf("%s.%d.validations", accKey, i)).(map[interface{}]interface{})
 	if !ok {
@@ -159,17 +163,17 @@ func (r *reader) parseValidations(vip *viper.Viper, i int) []validation {
 	}
 	m := make([]validation, 0, len(vls))
 	for k, v := range vls {
-		kStr := k.(string)
-		kSplit := strings.Split(kStr, ".")
-		if len(kSplit) > 1 && (kSplit[0] == jsonKey || kSplit[0] == tfKey) {
+		str := k.(string)
+		split := strings.Split(str, ".")
+		if len(split) > 1 && (split[0] == jsonKey || split[0] == tfKey) {
 			isJSON := false
-			if kSplit[0] == jsonKey {
+			if split[0] == jsonKey {
 				isJSON = true
 			}
 
 			m = append(m, validation{
 				isJSON: isJSON,
-				key:    kStr[len(kSplit[0])+1:],
+				key:    str[len(split[0])+1:],
 				value:  v,
 			})
 		} else {
@@ -192,6 +196,7 @@ func (r *reader) parseExpectErr(v *viper.Viper, i int) {
 }
 
 // parseConfig populates terraform configuration and parse to accConfig
+//nolint:forcetypeassert
 func (r *reader) parseConfig(v *viper.Viper) []accConfig {
 	tfKey := getLocalName(r.name)
 

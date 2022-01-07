@@ -1,5 +1,5 @@
 // (C) Copyright 2021 Hewlett Packard Enterprise Development LP
-
+//nolint:gosec
 package atf
 
 import (
@@ -145,7 +145,7 @@ func myCaller() string {
 	return getFrame(15)
 }
 
-// join strings wih '.'
+// join strings with '.'
 func path(v ...interface{}) string {
 	if len(v) == 0 {
 		return ""
