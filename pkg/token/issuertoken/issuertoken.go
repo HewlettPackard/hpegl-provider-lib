@@ -1,4 +1,4 @@
-// (C) Copyright 2021 Hewlett Packard Enterprise Development LP
+// (C) Copyright 2021-2023 Hewlett Packard Enterprise Development LP
 
 package issuertoken
 
@@ -50,7 +50,7 @@ func GenerateToken(
 		return httpClient.Do(req)
 	}, retryLimit)
 	if err != nil {
-		return "", err
+		return "", fmt.Errorf("network error in post to get token")
 	}
 	defer resp.Body.Close()
 
