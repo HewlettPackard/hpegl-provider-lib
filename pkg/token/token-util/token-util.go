@@ -1,4 +1,4 @@
-// (C) Copyright 2021 Hewlett Packard Enterprise Development LP
+// (C) Copyright 2021-2023 Hewlett Packard Enterprise Development LP
 
 package tokenutil
 
@@ -13,7 +13,7 @@ import (
 	"time"
 
 	"github.com/hewlettpackard/hpegl-provider-lib/pkg/token/errors"
-	"gopkg.in/square/go-jose.v2"
+	jose "gopkg.in/square/go-jose.v2"
 )
 
 // Token a jwt token format
@@ -39,6 +39,7 @@ type HttpClient interface {
 }
 
 // DecodeAccessToken decodes the accessToken offline
+//
 //nolint:gocritic
 func DecodeAccessToken(rawToken string) (Token, error) {
 	_, err := jose.ParseSigned(rawToken)
@@ -50,13 +51,13 @@ func DecodeAccessToken(rawToken string) (Token, error) {
 	// us do cheap checks before possibly re-syncing keys.
 	payload, err := parseJWT(rawToken)
 	if err != nil {
-		log.Fatal(fmt.Sprintf("oidc: malformed jwt: %v", err))
+		log.Fatalf(fmt.Sprintf("oidc: malformed jwt: %v", err))
 
 		return Token{}, fmt.Errorf("oidc: malformed jwt: %w", err)
 	}
 	var token Token
 	if err := json.Unmarshal(payload, &token); err != nil {
-		log.Fatal(fmt.Sprintf("oidc: failed to unmarshal claims: %v", err))
+		log.Fatalf(fmt.Sprintf("oidc: failed to unmarshal claims: %v", err))
 
 		return Token{}, fmt.Errorf("oidc: failed to unmarshal claims: %w", err)
 	}

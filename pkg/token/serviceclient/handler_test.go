@@ -1,4 +1,4 @@
-// (C) Copyright 2021 Hewlett Packard Enterprise Development LP
+// (C) Copyright 2021-2023 Hewlett Packard Enterprise Development LP
 
 package serviceclient_test
 
@@ -6,6 +6,7 @@ import (
 	"context"
 	"errors"
 	"log"
+	"reflect"
 	"testing"
 
 	"github.com/golang/mock/gomock"
@@ -19,7 +20,7 @@ import (
 	tokenutil "github.com/hewlettpackard/hpegl-provider-lib/pkg/token/token-util"
 
 	"github.com/stretchr/testify/assert"
-	"gopkg.in/square/go-jose.v2"
+	jose "gopkg.in/square/go-jose.v2"
 	"gopkg.in/square/go-jose.v2/jwt"
 )
 
@@ -110,7 +111,7 @@ func TestHandler(t *testing.T) {
 				getToken := retrieve.NewTokenRetrieveFunc(handler)
 				var token string
 				var err error
-				if tc.ctx != nil {
+				if !isNil(tc.ctx) {
 					tc.cancelFunc()
 
 					token, err = getToken(tc.ctx)
@@ -130,8 +131,12 @@ func TestHandler(t *testing.T) {
 	}
 }
 
+// isNil we've have to add this function to avoid a Github action error
+func isNil(i interface{}) bool {
+	return i == nil || reflect.ValueOf(i).IsNil()
+}
+
 type testNetError struct {
-	error
 }
 
 func (e testNetError) Timeout() bool {

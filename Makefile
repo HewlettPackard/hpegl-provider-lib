@@ -36,7 +36,6 @@ $(NAME): $(shell find . -name \*.go)
 
 vendor: go.mod go.sum
 	go mod download
-	go mod vendor
 
 update up: really-clean vendor
 .PHONY: update up
@@ -60,7 +59,7 @@ fmt:
 	gofmt -s -w $(GOFMT_FILES)
 
 tools:
-	GO111MODULE=on go install github.com/golangci/golangci-lint/cmd/golangci-lint
+	GO111MODULE=on go install github.com/golangci/golangci-lint/cmd/golangci-lint@v1.43.0
 
 lint:
 	@echo "==> Checking source code against linters..."

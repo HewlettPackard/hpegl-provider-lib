@@ -1,14 +1,13 @@
-// (C) Copyright 2021 Hewlett Packard Enterprise Development LP
+// (C) Copyright 2021-2023 Hewlett Packard Enterprise Development LP
 
 package gltform
 
 import (
 	"io"
-	"io/ioutil"
 	"os"
 	"path/filepath"
 
-	"gopkg.in/yaml.v2"
+	yaml "gopkg.in/yaml.v2"
 )
 
 const fileExtension = ".gltform"
@@ -99,7 +98,7 @@ func loadGLConfig(dir string) (*Gljwt, error) {
 }
 
 func parseGLStream(s io.Reader) (*Gljwt, error) {
-	contents, err := ioutil.ReadAll(s)
+	contents, err := io.ReadAll(s)
 	if err != nil {
 		return nil, err
 	}
