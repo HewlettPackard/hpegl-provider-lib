@@ -7,7 +7,7 @@ require (
 	github.com/golangci/golangci-lint v1.43.0
 	github.com/hashicorp/terraform-plugin-sdk/v2 v2.24.1
 	github.com/spf13/viper v1.15.0
-	github.com/stretchr/testify v1.8.1
+	github.com/stretchr/testify v1.8.2
 	gopkg.in/square/go-jose.v2 v2.6.0
 	gopkg.in/yaml.v2 v2.4.0
 )
