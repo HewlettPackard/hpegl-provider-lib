@@ -1,4 +1,4 @@
-// (C) Copyright 2021 Hewlett Packard Enterprise Development LP
+// (C) Copyright 2021-2024 Hewlett Packard Enterprise Development LP
 
 //nolint:structcheck
 package httpclient
@@ -11,9 +11,11 @@ import (
 	"net/http"
 	"testing"
 
+	"github.com/stretchr/testify/assert"
+
+	"github.com/hewlettpackard/hpegl-provider-lib/pkg/provider"
 	"github.com/hewlettpackard/hpegl-provider-lib/pkg/token/identitytoken"
 	"github.com/hewlettpackard/hpegl-provider-lib/pkg/token/issuertoken"
-	"github.com/stretchr/testify/assert"
 )
 
 type testCaseIssuer struct {
@@ -205,7 +207,7 @@ func TestGenerateToken(t *testing.T) {
 
 		c = createTestClient(tc.url, "", tc.statusCode, tc.token, true)
 
-		token, err := c.GenerateToken(tc.ctx, "", "", "")
+		token, err := c.GenerateToken(tc.ctx, "", "", "", provider.IAMVersionGLCS)
 		if tc.err != nil {
 			assert.EqualError(t, err, tc.err.Error())
 		}
@@ -219,7 +221,7 @@ func TestGenerateToken(t *testing.T) {
 
 		c = createTestClient(tc.url, "", tc.statusCode, tc.token, false)
 
-		token, err := c.GenerateToken(tc.ctx, "", "", "")
+		token, err := c.GenerateToken(tc.ctx, "", "", "", provider.IAMVersionGLCS)
 		if tc.err != nil {
 			assert.EqualError(t, err, tc.err.Error())
 		}
@@ -232,7 +234,7 @@ func TestGenerateTokenPassedInToken(t *testing.T) {
 	t.Parallel()
 	c := createTestClient("", "testToken", http.StatusAccepted, nil, true)
 
-	token, err := c.GenerateToken(context.Background(), "", "", "")
+	token, err := c.GenerateToken(context.Background(), "", "", "", "")
 	assert.Equal(t, "testToken", token)
 	assert.NoError(t, err)
 }

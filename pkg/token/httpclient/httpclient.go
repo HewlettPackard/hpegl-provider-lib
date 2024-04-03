@@ -1,4 +1,4 @@
-// (C) Copyright 2021 Hewlett Packard Enterprise Development LP
+// (C) Copyright 2021-2024 Hewlett Packard Enterprise Development LP
 
 package httpclient
 
@@ -33,11 +33,12 @@ func New(identityServiceURL string, vendedServiceClient bool, passedInToken stri
 	}
 }
 
-func (c *Client) GenerateToken(ctx context.Context, tenantID, clientID, clientSecret string) (string, error) {
+func (c *Client) GenerateToken(ctx context.Context, tenantID, clientID, clientSecret, iamVersion string) (string, error) {
 	// we don't have a passed-in token, so we need to actually generate a token
 	if c.passedInToken == "" {
 		if c.vendedServiceClient {
-			token, err := issuertoken.GenerateToken(ctx, tenantID, clientID, clientSecret, c.identityServiceURL, c.httpClient)
+			token, err := issuertoken.GenerateToken(
+				ctx, clientID, clientSecret, c.identityServiceURL, iamVersion, c.httpClient)
 
 			return token, err
 		}

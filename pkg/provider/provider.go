@@ -1,4 +1,4 @@
-// (C) Copyright 2021 Hewlett Packard Enterprise Development LP
+// (C) Copyright 2021-2024 Hewlett Packard Enterprise Development LP
 
 package provider
 
@@ -10,6 +10,16 @@ import (
 
 	"github.com/hewlettpackard/hpegl-provider-lib/pkg/registration"
 )
+
+const (
+	// IAMVersionGLCS is the IAM version for GLCS
+	IAMVersionGLCS = "glcs"
+	// IAMVersionGLP is the IAM version for GLP
+	IAMVersionGLP = "glp"
+)
+
+// Update this list with any new IAM versions
+var iamVersionList = [...]string{IAMVersionGLCS, IAMVersionGLP}
 
 // ConfigureFunc is a type definition of a function that returns a ConfigureContextFunc object
 // A function of this type is passed in to NewProviderFunc below
@@ -81,9 +91,18 @@ func Schema() map[string]*schema.Schema {
 		Type:        schema.TypeString,
 		Optional:    true,
 		DefaultFunc: schema.EnvDefaultFunc("HPEGL_IAM_SERVICE_URL", "https://client.greenlake.hpe.com/api/iam"),
-		Description: `The IAM service URL to be used to generate tokens.  In the case of API-vended API clients
-            (the default) then this should be set to the "issuer url" for the client.  In the case of non-API-vended
-            API clients use the appropriate GL "client" URL. Can be set by HPEGL_IAM_SERVICE_URL env-var`,
+		Description: `The IAM service URL to be used to generate tokens.  In the case of GLCS API clients
+            (the default) then this should be set to the "issuer url" for the client.  In the case of GLP
+            API clients use the appropriate "Token URL" from the API screen. Can be set by HPEGL_IAM_SERVICE_URL env-var`,
+	}
+
+	providerSchema["iam_version"] = &schema.Schema{
+		Type:         schema.TypeString,
+		Optional:     true,
+		DefaultFunc:  schema.EnvDefaultFunc("HPEGL_IAM_VERSION", IAMVersionGLCS),
+		ValidateFunc: ValidateIAMVersion,
+		Description: `The IAM version to be used.  Can be set by HPEGL_IAM_VERSION env-var. Valid values are: 
+			` + fmt.Sprintf("%v", iamVersionList) + `The default is ` + IAMVersionGLCS + `.`,
 	}
 
 	providerSchema["api_vended_service_client"] = &schema.Schema{
@@ -98,7 +117,7 @@ func Schema() map[string]*schema.Schema {
 		Type:        schema.TypeString,
 		Optional:    true,
 		DefaultFunc: schema.EnvDefaultFunc("HPEGL_TENANT_ID", ""),
-		Description: "The tenant-id to be used, can be set by HPEGL_TENANT_ID env-var",
+		Description: "The tenant-id to be used for GLCS IAM, can be set by HPEGL_TENANT_ID env-var",
 	}
 
 	providerSchema["user_id"] = &schema.Schema{
@@ -136,4 +155,24 @@ func convertToTypeSet(r *schema.Resource) *schema.Schema {
 		// We put the *schema.Resource here
 		Elem: r,
 	}
+}
+
+// ValidateIAMVersion is a ValidateFunc for the "iam_version" field in the provider schema
+func ValidateIAMVersion(v interface{}, k string) ([]string, []error) {
+	// check that v is in iamVersionList
+	found := false
+	for _, version := range iamVersionList {
+		if version == v.(string) {
+			found = true
+			break
+		}
+	}
+
+	// add error if not found
+	es := make([]error, 0)
+	if !found {
+		es = append(es, fmt.Errorf("IAM version must be one of %v", iamVersionList))
+	}
+
+	return []string{}, es
 }

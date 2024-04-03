@@ -1,4 +1,4 @@
-// (C) Copyright 2021 Hewlett Packard Enterprise Development LP
+// (C) Copyright 2021-2024 Hewlett Packard Enterprise Development LP
 
 package provider
 
@@ -8,8 +8,9 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
-	"github.com/hewlettpackard/hpegl-provider-lib/pkg/registration"
 	"github.com/stretchr/testify/assert"
+
+	"github.com/hewlettpackard/hpegl-provider-lib/pkg/registration"
 )
 
 func testResource() *schema.Resource {
@@ -167,6 +168,44 @@ func TestNewProviderFunc(t *testing.T) {
 			}()
 
 			NewProviderFunc(regs, providerConfigure)()
+		})
+	}
+}
+
+func TestValidateIAMVersion(t *testing.T) {
+	t.Parallel()
+	testcases := []struct {
+		name     string
+		version  string
+		hasError bool
+	}{
+		{
+			name:     "valid IAM version GLCS",
+			version:  IAMVersionGLCS,
+			hasError: false,
+		},
+		{
+			name:     "valid IAM version GLP",
+			version:  IAMVersionGLP,
+			hasError: false,
+		},
+		{
+			name:     "invalid IAM version",
+			version:  "invalid",
+			hasError: true,
+		},
+	}
+
+	for _, testcase := range testcases {
+		tc := testcase
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+			_, es := ValidateIAMVersion(tc.version, "iam_version")
+			if tc.hasError {
+				assert.NotEmpty(t, es)
+			} else {
+				assert.Empty(t, es)
+			}
 		})
 	}
 }
