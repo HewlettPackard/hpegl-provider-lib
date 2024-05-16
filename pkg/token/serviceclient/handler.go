@@ -5,7 +5,6 @@ package serviceclient
 import (
 	"context"
 	"errors"
-	"github.com/davecgh/go-spew/spew"
 	"net"
 	"time"
 
@@ -153,7 +152,6 @@ func (h *Handler) retrieveToken() common.Result {
 		}
 
 		// If token is about to expire in TimeToTokenExpiry seconds or less generate a new one
-		spew.Dump(tokenDetails)
 		if tokenDetails.Expiry-now <= common.TimeToTokenExpiry {
 			token, retry, err := h.generateToken()
 			if retry {

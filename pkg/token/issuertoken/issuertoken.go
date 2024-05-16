@@ -87,7 +87,7 @@ func generateParamsAndURL(clientID, clientSecret, identityServiceURL, iamVersion
 
 	// Add specific parameters and generate URL for the IAM version
 	var clientURL string
-	switch iamVersion {
+	switch provider.IAMVersion(iamVersion) {
 	case provider.IAMVersionGLCS:
 		params.Add("scope", "hpe-tenant")
 		clientURL = fmt.Sprintf("%s/v1/token", identityServiceURL)

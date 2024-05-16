@@ -207,7 +207,7 @@ func TestGenerateToken(t *testing.T) {
 
 		c = createTestClient(tc.url, "", tc.statusCode, tc.token, true)
 
-		token, err := c.GenerateToken(tc.ctx, "", "", "", provider.IAMVersionGLCS)
+		token, err := c.GenerateToken(tc.ctx, "", "", "", string(provider.IAMVersionGLCS))
 		if tc.err != nil {
 			assert.EqualError(t, err, tc.err.Error())
 		}
@@ -221,7 +221,7 @@ func TestGenerateToken(t *testing.T) {
 
 		c = createTestClient(tc.url, "", tc.statusCode, tc.token, false)
 
-		token, err := c.GenerateToken(tc.ctx, "", "", "", provider.IAMVersionGLCS)
+		token, err := c.GenerateToken(tc.ctx, "", "", "", string(provider.IAMVersionGLCS))
 		if tc.err != nil {
 			assert.EqualError(t, err, tc.err.Error())
 		}

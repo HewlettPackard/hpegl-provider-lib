@@ -181,12 +181,12 @@ func TestValidateIAMVersion(t *testing.T) {
 	}{
 		{
 			name:     "valid IAM version GLCS",
-			version:  IAMVersionGLCS,
+			version:  string(IAMVersionGLCS),
 			hasError: false,
 		},
 		{
 			name:     "valid IAM version GLP",
-			version:  IAMVersionGLP,
+			version:  string(IAMVersionGLP),
 			hasError: false,
 		},
 		{
@@ -201,6 +201,39 @@ func TestValidateIAMVersion(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
 			_, es := ValidateIAMVersion(tc.version, "iam_version")
+			if tc.hasError {
+				assert.NotEmpty(t, es)
+			} else {
+				assert.Empty(t, es)
+			}
+		})
+	}
+}
+
+func TestValidateServiceURL(t *testing.T) {
+	t.Parallel()
+	testcases := []struct {
+		name     string
+		url      string
+		hasError bool
+	}{
+		{
+			name:     "valid URL",
+			url:      "https://client.greenlake.hpe.com/api/iam",
+			hasError: false,
+		},
+		{
+			name:     "invalid URL",
+			url:      "invalid",
+			hasError: true,
+		},
+	}
+
+	for _, testcase := range testcases {
+		tc := testcase
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+			_, es := ValidateServiceURL(tc.url, "iam_service_url")
 			if tc.hasError {
 				assert.NotEmpty(t, es)
 			} else {

@@ -4,6 +4,7 @@ package provider
 
 import (
 	"fmt"
+	"net/url"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/plugin"
@@ -11,15 +12,18 @@ import (
 	"github.com/hewlettpackard/hpegl-provider-lib/pkg/registration"
 )
 
+// IAMVersion is a type definition for the IAM version
+type IAMVersion string
+
 const (
 	// IAMVersionGLCS is the IAM version for GLCS
-	IAMVersionGLCS = "glcs"
+	IAMVersionGLCS IAMVersion = "glcs"
 	// IAMVersionGLP is the IAM version for GLP
-	IAMVersionGLP = "glp"
+	IAMVersionGLP IAMVersion = "glp"
 )
 
 // Update this list with any new IAM versions
-var iamVersionList = [...]string{IAMVersionGLCS, IAMVersionGLP}
+var iamVersionList = [...]IAMVersion{IAMVersionGLCS, IAMVersionGLP}
 
 // ConfigureFunc is a type definition of a function that returns a ConfigureContextFunc object
 // A function of this type is passed in to NewProviderFunc below
@@ -88,9 +92,10 @@ func Schema() map[string]*schema.Schema {
 	}
 
 	providerSchema["iam_service_url"] = &schema.Schema{
-		Type:        schema.TypeString,
-		Optional:    true,
-		DefaultFunc: schema.EnvDefaultFunc("HPEGL_IAM_SERVICE_URL", "https://client.greenlake.hpe.com/api/iam"),
+		Type:         schema.TypeString,
+		Optional:     true,
+		ValidateFunc: ValidateServiceURL,
+		DefaultFunc:  schema.EnvDefaultFunc("HPEGL_IAM_SERVICE_URL", "https://client.greenlake.hpe.com/api/iam"),
 		Description: `The IAM service URL to be used to generate tokens.  In the case of GLCS API clients
             (the default) then this should be set to the "issuer url" for the client.  In the case of GLP
             API clients use the appropriate "Token URL" from the API screen. Can be set by HPEGL_IAM_SERVICE_URL env-var`,
@@ -99,10 +104,10 @@ func Schema() map[string]*schema.Schema {
 	providerSchema["iam_version"] = &schema.Schema{
 		Type:         schema.TypeString,
 		Optional:     true,
-		DefaultFunc:  schema.EnvDefaultFunc("HPEGL_IAM_VERSION", IAMVersionGLCS),
+		DefaultFunc:  schema.EnvDefaultFunc("HPEGL_IAM_VERSION", string(IAMVersionGLCS)),
 		ValidateFunc: ValidateIAMVersion,
 		Description: `The IAM version to be used.  Can be set by HPEGL_IAM_VERSION env-var. Valid values are: 
-			` + fmt.Sprintf("%v", iamVersionList) + `The default is ` + IAMVersionGLCS + `.`,
+			` + fmt.Sprintf("%v", iamVersionList) + `The default is ` + string(IAMVersionGLCS) + `.`,
 	}
 
 	providerSchema["api_vended_service_client"] = &schema.Schema{
@@ -162,7 +167,12 @@ func ValidateIAMVersion(v interface{}, k string) ([]string, []error) {
 	// check that v is in iamVersionList
 	found := false
 	for _, version := range iamVersionList {
-		if version == v.(string) {
+		versn, ok := v.(string)
+		if !ok {
+			return []string{}, []error{fmt.Errorf("IAM version must be a string")}
+		}
+
+		if string(version) == versn {
 			found = true
 			break
 		}
@@ -175,4 +185,20 @@ func ValidateIAMVersion(v interface{}, k string) ([]string, []error) {
 	}
 
 	return []string{}, es
+}
+
+// ValidateServiceURL is a ValidateFunc for the "iam_service_url" field in the provider schema
+func ValidateServiceURL(v interface{}, k string) ([]string, []error) {
+	// check that v is a URL
+	_, ok := v.(string)
+	if !ok {
+		return []string{}, []error{fmt.Errorf("Service URL must be a string")}
+	}
+
+	_, err := url.ParseRequestURI(v.(string))
+	if err != nil {
+		return []string{}, []error{fmt.Errorf("Service URL must be a valid URL")}
+	}
+
+	return []string{}, []error{}
 }
