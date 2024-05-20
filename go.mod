@@ -3,7 +3,6 @@ module github.com/hewlettpackard/hpegl-provider-lib
 go 1.18
 
 require (
-	github.com/davecgh/go-spew v1.1.1
 	github.com/golang/mock v1.6.0
 	github.com/golangci/golangci-lint v1.43.0
 	github.com/hashicorp/terraform-plugin-sdk/v2 v2.24.1
@@ -36,6 +35,7 @@ require (
 	github.com/charithe/durationcheck v0.0.9 // indirect
 	github.com/chavacava/garif v0.0.0-20221024190013-b3ef35877348 // indirect
 	github.com/daixiang0/gci v0.9.0 // indirect
+	github.com/davecgh/go-spew v1.1.1 // indirect
 	github.com/denis-tingajkin/go-header v0.4.2 // indirect
 	github.com/esimonov/ifshort v1.0.4 // indirect
 	github.com/ettle/strcase v0.1.1 // indirect
