@@ -1,4 +1,4 @@
-// (C) Copyright 2021 Hewlett Packard Enterprise Development LP
+// (C) Copyright 2021-2024 Hewlett Packard Enterprise Development LP
 
 package serviceclient
 
@@ -20,7 +20,7 @@ var _ common.TokenChannelInterface = (*Handler)(nil)
 
 //go:generate mockgen -build_flags=-mod=mod -destination=../../mocks/IdentityAPI_mocks.go -package=mocks github.com/hewlettpackard/hpegl-provider-lib/pkg/token/serviceclient IdentityAPI
 type IdentityAPI interface {
-	GenerateToken(context.Context, string, string, string) (string, error)
+	GenerateToken(context.Context, string, string, string, string) (string, error)
 }
 
 // Handler the handler for service-client creds
@@ -30,6 +30,7 @@ type Handler struct {
 	tenantID            string
 	clientID            string
 	clientSecret        string
+	iamVersion          string
 	vendedServiceClient bool
 	numRetries          int
 	client              IdentityAPI
@@ -54,12 +55,14 @@ type resourceData interface {
 
 // NewHandler creates a new handler and returns the common.TokenChannelInterface interface
 // Param resourceData can be *schema.ResourceData or any model which implements resourceData
+//
 //nolint:forcetypeassert
 func NewHandler(d resourceData, opts ...CreateOpt) (common.TokenChannelInterface, error) {
 	h := new(Handler)
 
 	// set Handler fields
 	h.iamServiceURL = d.Get("iam_service_url").(string)
+	h.iamVersion = d.Get("iam_version").(string)
 	h.tenantID = d.Get("tenant_id").(string)
 	h.clientID = d.Get("user_id").(string)
 	h.clientSecret = d.Get("user_secret").(string)
@@ -178,7 +181,7 @@ func (h *Handler) generateToken() (string, bool, error) {
 	var err error
 
 	// TODO pass a context down to here
-	token, err = h.client.GenerateToken(context.Background(), h.tenantID, h.clientID, h.clientSecret)
+	token, err = h.client.GenerateToken(context.Background(), h.tenantID, h.clientID, h.clientSecret, h.iamVersion)
 
 	// If this is a retryable error check to see if we've reached our retryLimit or not, if we can retry again
 	// return true

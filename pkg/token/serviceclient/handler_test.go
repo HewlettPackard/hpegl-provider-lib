@@ -1,4 +1,4 @@
-// (C) Copyright 2021-2023 Hewlett Packard Enterprise Development LP
+// (C) Copyright 2021-2024 Hewlett Packard Enterprise Development LP
 
 package serviceclient_test
 
@@ -103,7 +103,7 @@ func TestHandler(t *testing.T) {
 			assert.NoError(t, err)
 
 			testToken := generateTestToken(600)
-			mock.EXPECT().GenerateToken(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(testToken, tc.err).MaxTimes(8)
+			mock.EXPECT().GenerateToken(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(testToken, tc.err).MaxTimes(8)
 
 			handler, err := serviceclient.NewHandler(d, serviceclient.WithIdentityAPI(mock))
 			assert.NoError(t, err)

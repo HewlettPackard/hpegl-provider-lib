@@ -1,4 +1,4 @@
-// (C) Copyright 2021-2023 Hewlett Packard Enterprise Development LP
+// (C) Copyright 2021-2024 Hewlett Packard Enterprise Development LP
 
 package issuertoken
 
@@ -11,6 +11,7 @@ import (
 	"net/url"
 	"strings"
 
+	"github.com/hewlettpackard/hpegl-provider-lib/pkg/provider"
 	tokenutil "github.com/hewlettpackard/hpegl-provider-lib/pkg/token/token-util"
 )
 
@@ -27,25 +28,26 @@ type TokenResponse struct {
 
 func GenerateToken(
 	ctx context.Context,
-	tenantID,
 	clientID,
 	clientSecret string,
 	identityServiceURL string,
 	httpClient tokenutil.HttpClient,
+	iamVersion string,
 ) (string, error) {
-	params := url.Values{}
-	params.Add("client_id", clientID)
-	params.Add("client_secret", clientSecret)
-	params.Add("grant_type", "client_credentials")
-	params.Add("scope", "hpe-tenant")
+	// Generate the parameters and URL for the request
+	params, clientURL, err := generateParamsAndURL(clientID, clientSecret, identityServiceURL, iamVersion)
+	if err != nil {
+		return "", err
+	}
 
-	url := fmt.Sprintf("%s/v1/token", identityServiceURL)
-	req, err := http.NewRequestWithContext(ctx, http.MethodPost, url, strings.NewReader(params.Encode()))
+	// Create the request
+	req, err := http.NewRequestWithContext(ctx, http.MethodPost, clientURL, strings.NewReader(params.Encode()))
 	if err != nil {
 		return "", err
 	}
 	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 
+	// Execute the request, with retries
 	resp, err := tokenutil.DoRetries(func() (*http.Response, error) {
 		return httpClient.Do(req)
 	}, retryLimit)
@@ -72,4 +74,30 @@ func GenerateToken(
 	}
 
 	return token.AccessToken, nil
+}
+
+// generateParamsAndURL generates the parameters and URL for the request
+func generateParamsAndURL(clientID, clientSecret, identityServiceURL, iamVersion string) (url.Values, string, error) {
+	params := url.Values{}
+
+	// Add common parameters for an API Client
+	params.Add("client_id", clientID)
+	params.Add("client_secret", clientSecret)
+	params.Add("grant_type", "client_credentials")
+
+	// Add specific parameters and generate URL for the IAM version
+	var clientURL string
+	switch provider.IAMVersion(iamVersion) {
+	case provider.IAMVersionGLCS:
+		params.Add("scope", "hpe-tenant")
+		clientURL = fmt.Sprintf("%s/v1/token", identityServiceURL)
+
+	case provider.IAMVersionGLP:
+		clientURL = identityServiceURL
+
+	default:
+		return nil, "", fmt.Errorf("invalid IAM version")
+	}
+
+	return params, clientURL, nil
 }
