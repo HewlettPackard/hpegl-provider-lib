@@ -35,16 +35,16 @@ func (m *MockIdentityAPI) EXPECT() *MockIdentityAPIMockRecorder {
 }
 
 // GenerateToken mocks base method.
-func (m *MockIdentityAPI) GenerateToken(arg0 context.Context, arg1, arg2, arg3 string) (string, error) {
+func (m *MockIdentityAPI) GenerateToken(arg0 context.Context, arg1, arg2, arg3, arg4 string) (string, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GenerateToken", arg0, arg1, arg2, arg3)
+	ret := m.ctrl.Call(m, "GenerateToken", arg0, arg1, arg2, arg3, arg4)
 	ret0, _ := ret[0].(string)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // GenerateToken indicates an expected call of GenerateToken.
-func (mr *MockIdentityAPIMockRecorder) GenerateToken(arg0, arg1, arg2, arg3 interface{}) *gomock.Call {
+func (mr *MockIdentityAPIMockRecorder) GenerateToken(arg0, arg1, arg2, arg3, arg4 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GenerateToken", reflect.TypeOf((*MockIdentityAPI)(nil).GenerateToken), arg0, arg1, arg2, arg3)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GenerateToken", reflect.TypeOf((*MockIdentityAPI)(nil).GenerateToken), arg0, arg1, arg2, arg3, arg4)
 }
