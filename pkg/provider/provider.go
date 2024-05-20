@@ -164,15 +164,16 @@ func convertToTypeSet(r *schema.Resource) *schema.Schema {
 
 // ValidateIAMVersion is a ValidateFunc for the "iam_version" field in the provider schema
 func ValidateIAMVersion(v interface{}, k string) ([]string, []error) {
-	// check that v is in iamVersionList
+	// This isn't strictly necessary, but it's a good idea to check that the input is a string
+	versionInput, ok := v.(string)
+	if !ok {
+		return []string{}, []error{fmt.Errorf("IAM version must be a string")}
+	}
+
+	// check that versionInput is in iamVersionList
 	found := false
 	for _, version := range iamVersionList {
-		versn, ok := v.(string)
-		if !ok {
-			return []string{}, []error{fmt.Errorf("IAM version must be a string")}
-		}
-
-		if string(version) == versn {
+		if string(version) == versionInput {
 			found = true
 			break
 		}
@@ -189,13 +190,14 @@ func ValidateIAMVersion(v interface{}, k string) ([]string, []error) {
 
 // ValidateServiceURL is a ValidateFunc for the "iam_service_url" field in the provider schema
 func ValidateServiceURL(v interface{}, k string) ([]string, []error) {
-	// check that v is a URL
-	_, ok := v.(string)
+	// check that v is a string, this should not be necessary but it's a good idea
+	serviceURL, ok := v.(string)
 	if !ok {
 		return []string{}, []error{fmt.Errorf("Service URL must be a string")}
 	}
 
-	_, err := url.ParseRequestURI(v.(string))
+	// check that serviceURL is a valid URL
+	_, err := url.ParseRequestURI(serviceURL)
 	if err != nil {
 		return []string{}, []error{fmt.Errorf("Service URL must be a valid URL")}
 	}

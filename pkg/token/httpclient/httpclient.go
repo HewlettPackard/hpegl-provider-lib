@@ -38,7 +38,7 @@ func (c *Client) GenerateToken(ctx context.Context, tenantID, clientID, clientSe
 	if c.passedInToken == "" {
 		if c.vendedServiceClient {
 			token, err := issuertoken.GenerateToken(
-				ctx, clientID, clientSecret, c.identityServiceURL, iamVersion, c.httpClient)
+				ctx, clientID, clientSecret, c.identityServiceURL, c.httpClient, iamVersion)
 
 			return token, err
 		}

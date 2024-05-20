@@ -31,8 +31,8 @@ func GenerateToken(
 	clientID,
 	clientSecret string,
 	identityServiceURL string,
-	iamVersion string,
 	httpClient tokenutil.HttpClient,
+	iamVersion string,
 ) (string, error) {
 	// Generate the parameters and URL for the request
 	params, clientURL, err := generateParamsAndURL(clientID, clientSecret, identityServiceURL, iamVersion)
