@@ -1,4 +1,4 @@
-// (C) Copyright 2021-2023 Hewlett Packard Enterprise Development LP
+// (C) Copyright 2021-2024 Hewlett Packard Enterprise Development LP
 
 package gltform
 
@@ -20,6 +20,10 @@ type Gljwt struct {
 	ProjectID string `yaml:"project_id"`
 	// RestURL - the URL to be used for metal, at present it refers to a Quake portal URL
 	RestURL string `yaml:"rest_url"`
+	// GLPWorkspace - the workspace to be used for GLP
+	GLPWorkspace string `yaml:"glp_workspace,omitempty"`
+	// GLPRole - the role to be used for GLP
+	GLPRole string `yaml:"glp_role,omitempty"`
 	// TODO remove this entry once we've switched quake-client over to using this package
 	// Token - the GL IAM token
 	Token string `yaml:"access_token,omitempty"`
@@ -47,9 +51,11 @@ func GetGLConfig() (gljwt *Gljwt, err error) {
 func WriteGLConfig(d map[string]interface{}) error {
 	config := &Gljwt{
 		// If space_name isn't present, we'll just write out ""
-		SpaceName: d["space_name"].(string),
-		ProjectID: d["project_id"].(string),
-		RestURL:   d["rest_url"].(string),
+		SpaceName:    d["space_name"].(string),
+		ProjectID:    d["project_id"].(string),
+		RestURL:      d["rest_url"].(string),
+		GLPRole:      d["glp_role"].(string),
+		GLPWorkspace: d["glp_workspace"].(string),
 	}
 
 	// Marshal config
