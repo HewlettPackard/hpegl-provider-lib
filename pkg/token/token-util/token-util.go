@@ -12,8 +12,8 @@ import (
 	"strings"
 	"time"
 
+	jose "github.com/go-jose/go-jose/v3"
 	"github.com/hewlettpackard/hpegl-provider-lib/pkg/token/errors"
-	jose "gopkg.in/square/go-jose.v2"
 )
 
 // Token a jwt token format
