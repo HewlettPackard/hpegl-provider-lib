@@ -158,13 +158,22 @@ func TestDoRetries(t *testing.T) {
 			responseStatus: http.StatusTooManyRequests,
 		},
 		{
-			name: "status 502 no retry",
+			name: "status 502",
 			call: func() (*http.Response, error) {
 				totalRetries++
 
 				return &http.Response{StatusCode: http.StatusBadGateway}, nil
 			},
 			responseStatus: http.StatusBadGateway,
+		},
+		{
+			name: "status 403 no retry",
+			call: func() (*http.Response, error) {
+				totalRetries++
+
+				return &http.Response{StatusCode: http.StatusForbidden}, nil
+			},
+			responseStatus: http.StatusForbidden,
 		},
 		{
 			name: "no url",
@@ -184,8 +193,8 @@ func TestDoRetries(t *testing.T) {
 			} else {
 				assert.Equal(t, tc.responseStatus, resp.StatusCode)
 
-				// only 429 and 500 status codes should retry
-				if tc.responseStatus == http.StatusBadGateway {
+				// only 429, 500 and 502 status codes should retry
+				if tc.responseStatus == http.StatusForbidden {
 					assert.Equal(t, 1, totalRetries)
 				} else {
 					assert.Equal(t, 2, totalRetries)

@@ -1,4 +1,4 @@
-// (C) Copyright 2021-2023 Hewlett Packard Enterprise Development LP
+// (C) Copyright 2021-2024 Hewlett Packard Enterprise Development LP
 
 package tokenutil
 
@@ -134,7 +134,8 @@ func ManageHTTPErrorCodes(resp *http.Response, clientID string) error {
 }
 
 func isStatusRetryable(statusCode int) bool {
-	if statusCode == http.StatusInternalServerError || statusCode == http.StatusTooManyRequests {
+	if statusCode == http.StatusInternalServerError || statusCode == http.StatusTooManyRequests ||
+		statusCode == http.StatusBadGateway {
 		return true
 	}
 
