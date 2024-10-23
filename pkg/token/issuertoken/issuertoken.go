@@ -40,15 +40,16 @@ func GenerateToken(
 		return "", err
 	}
 
-	// Create the request
-	req, err := http.NewRequestWithContext(ctx, http.MethodPost, clientURL, strings.NewReader(params.Encode()))
-	if err != nil {
-		return "", err
-	}
-	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
-
 	// Execute the request, with retries
 	resp, err := tokenutil.DoRetries(func() (*http.Response, error) {
+		// Create the request
+		req, errReq := createRequest(ctx, params, clientURL)
+		if errReq != nil {
+			return nil, errReq
+		}
+		// Close the request after use, i.e. don't reuse the TCP connection
+		req.Close = true
+
 		return httpClient.Do(req)
 	}, retryLimit)
 	if err != nil {
@@ -74,6 +75,17 @@ func GenerateToken(
 	}
 
 	return token.AccessToken, nil
+}
+
+// createRequest creates a new http request
+func createRequest(ctx context.Context, params url.Values, clientURL string) (*http.Request, error) {
+	req, err := http.NewRequestWithContext(ctx, http.MethodPost, clientURL, strings.NewReader(params.Encode()))
+	if err != nil {
+		return nil, err
+	}
+	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+
+	return req, nil
 }
 
 // generateParamsAndURL generates the parameters and URL for the request

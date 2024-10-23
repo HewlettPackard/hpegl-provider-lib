@@ -126,7 +126,7 @@ func setTestCase() ([]testCaseIssuer, []testCaseIdentity) {
 				name: "no context",
 				url:  "https://hpe-greenlake-tenant.okta.com/oauth2/default",
 				ctx:  nil,
-				err:  errors.New("net/http: nil Context"),
+				err:  errors.New("network error in post to get token"),
 			},
 			{
 				name:       "status code 400",
