@@ -89,6 +89,7 @@ func DoRetries(call func() (*http.Response, error), retries int) (*http.Response
 			break
 		}
 
+		log.Printf("Retrying request, retries left: %v", retries)
 		time.Sleep(3 * time.Second)
 		retries--
 	}
