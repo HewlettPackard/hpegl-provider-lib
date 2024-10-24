@@ -3,13 +3,21 @@
 package tokenutil
 
 import (
+	"context"
 	"errors"
 	"net/http"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+
+	hpeglErrors "github.com/hewlettpackard/hpegl-provider-lib/pkg/token/errors"
 )
+
+var errLimitExceeded = hpeglErrors.MakeErrInternalError(hpeglErrors.ErrorResponse{
+	ErrorCode: "ErrGenerateTokenRetryLimitExceeded",
+	Message:   "Retry limit exceeded"})
 
 //nolint:scopelint
 func TestDecodeAccessToken(t *testing.T) {
@@ -135,50 +143,81 @@ func TestDoRetries(t *testing.T) {
 	totalRetries := 0
 	testcases := []struct {
 		name           string
-		call           func() (*http.Response, error)
+		ctx            context.Context
+		call           func(ctx context.Context) (*http.Request, *http.Response, error)
 		responseStatus int
 		err            error
 	}{
 		{
 			name: "status 500",
-			call: func() (*http.Response, error) {
+			ctx:  context.Background(),
+			call: func(ctx context.Context) (*http.Request, *http.Response, error) {
 				totalRetries++
 
-				return &http.Response{StatusCode: http.StatusInternalServerError}, nil
+				return nil, &http.Response{StatusCode: http.StatusInternalServerError}, nil
 			},
 			responseStatus: http.StatusInternalServerError,
 		},
 		{
 			name: "status 429",
-			call: func() (*http.Response, error) {
+			ctx:  context.Background(),
+			call: func(ctx context.Context) (*http.Request, *http.Response, error) {
 				totalRetries++
 
-				return &http.Response{StatusCode: http.StatusTooManyRequests}, nil
+				return nil, &http.Response{StatusCode: http.StatusTooManyRequests}, nil
 			},
 			responseStatus: http.StatusTooManyRequests,
 		},
 		{
 			name: "status 502",
-			call: func() (*http.Response, error) {
+			ctx:  context.Background(),
+			call: func(ctx context.Context) (*http.Request, *http.Response, error) {
 				totalRetries++
 
-				return &http.Response{StatusCode: http.StatusBadGateway}, nil
+				return nil, &http.Response{StatusCode: http.StatusBadGateway}, nil
 			},
 			responseStatus: http.StatusBadGateway,
 		},
 		{
 			name: "status 403 no retry",
-			call: func() (*http.Response, error) {
-				totalRetries++
-
-				return &http.Response{StatusCode: http.StatusForbidden}, nil
+			ctx:  context.Background(),
+			call: func(ctx context.Context) (*http.Request, *http.Response, error) {
+				return nil, &http.Response{StatusCode: http.StatusForbidden}, nil
 			},
 			responseStatus: http.StatusForbidden,
 		},
 		{
+			name: "Deadline exceeded",
+			ctx:  context.Background(),
+			call: func(ctx context.Context) (*http.Request, *http.Response, error) {
+				totalRetries++
+				req := &http.Request{}
+				req = req.WithContext(ctx)
+				select {
+				case <-ctx.Done():
+					return req, nil, context.DeadlineExceeded
+				case <-time.After(5 * time.Second): // this is greater than the deadline
+					return req, nil, nil
+				}
+			},
+			err: errLimitExceeded,
+		},
+		{
+			name: "Context cancelled",
+			ctx:  context.Background(),
+			call: func(ctx context.Context) (*http.Request, *http.Response, error) {
+				req := &http.Request{}
+				req = req.WithContext(ctx)
+
+				return req, nil, context.Canceled
+			},
+			err: context.Canceled,
+		},
+		{
 			name: "no url",
-			call: func() (*http.Response, error) {
-				return nil, errors.New("http: nil Request.URL")
+			ctx:  context.Background(),
+			call: func(ctx context.Context) (*http.Request, *http.Response, error) {
+				return nil, nil, errors.New("http: nil Request.URL")
 			},
 			err: errors.New("http: nil Request.URL"),
 		},
@@ -187,17 +226,25 @@ func TestDoRetries(t *testing.T) {
 	for _, testcase := range testcases {
 		tc := testcase
 		t.Run(tc.name, func(t *testing.T) {
-			resp, err := DoRetries(tc.call, 1) // nolint: bodyclose
+			resp, err := DoRetries(tc.ctx, tc.call, 1) // nolint: bodyclose
 			if tc.err != nil {
 				assert.EqualError(t, err, tc.err.Error())
+				if tc.err == errLimitExceeded {
+					assert.Equal(t, 1, totalRetries)
+				} else {
+					assert.Equal(t, 0, totalRetries)
+				}
+
+				totalRetries = 0
+
 			} else {
 				assert.Equal(t, tc.responseStatus, resp.StatusCode)
 
 				// only 429, 500 and 502 status codes should retry
 				if tc.responseStatus == http.StatusForbidden {
-					assert.Equal(t, 1, totalRetries)
+					assert.Equal(t, 0, totalRetries)
 				} else {
-					assert.Equal(t, 2, totalRetries)
+					assert.Equal(t, 1, totalRetries)
 				}
 
 				totalRetries = 0

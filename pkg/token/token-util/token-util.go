@@ -3,6 +3,7 @@
 package tokenutil
 
 import (
+	"context"
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
@@ -75,26 +76,60 @@ func DecodeAccessToken(rawToken string) (Token, error) {
 	return token, nil
 }
 
-func DoRetries(call func() (*http.Response, error), retries int) (*http.Response, error) {
+func DoRetries(ctx context.Context, call func(ctx context.Context) (*http.Request, *http.Response, error), retries int) (*http.Response, error) {
+	var req *http.Request
 	var resp *http.Response
 	var err error
 
 	for {
-		resp, err = call()
+		// If retries are exhausted, return an error
+		if retries == 0 {
+			return resp, errors.MakeErrInternalError(errors.ErrorResponse{
+				ErrorCode: "ErrGenerateTokenRetryLimitExceeded",
+				Message:   "Retry limit exceeded"})
+		}
+
+		// Create a new context with a timeout
+		ctxWithTimeout, cancel := createContextWithTimeout(ctx)
+		defer cancel()
+
+		// Execute the request
+		req, resp, err = call(ctxWithTimeout)
+
+		// If the error is due to a context timeout, retry the request
+		if req != nil && req.Context().Err() == context.DeadlineExceeded {
+			retries = sleepAndDecrementRetries(retries)
+
+			continue
+		}
+
+		// For all other errors, return the error
 		if err != nil {
-			return nil, err
+			return resp, err
 		}
 
-		if !isStatusRetryable(resp.StatusCode) || retries == 0 {
-			break
+		// If the status code is not retryable, return the response
+		if !isStatusRetryable(resp.StatusCode) {
+			return resp, nil
 		}
 
-		log.Printf("Retrying request, retries left: %v", retries)
-		time.Sleep(3 * time.Second)
-		retries--
+		retries = sleepAndDecrementRetries(retries)
+	}
+}
+
+func createContextWithTimeout(ctx context.Context) (context.Context, context.CancelFunc) {
+	if ctx == nil {
+		return context.WithTimeout(context.Background(), 3*time.Second)
 	}
 
-	return resp, nil
+	return context.WithTimeout(ctx, 3*time.Second)
+}
+
+func sleepAndDecrementRetries(retries int) int {
+	log.Printf("Retrying request, retries left: %v", retries)
+	time.Sleep(5 * time.Second)
+
+	return retries - 1
 }
 
 func ManageHTTPErrorCodes(resp *http.Response, clientID string) error {

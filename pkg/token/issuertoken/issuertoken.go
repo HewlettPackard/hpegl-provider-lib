@@ -41,19 +41,22 @@ func GenerateToken(
 	}
 
 	// Execute the request, with retries
-	resp, err := tokenutil.DoRetries(func() (*http.Response, error) {
+	resp, err := tokenutil.DoRetries(ctx, func(reqCtx context.Context) (*http.Request, *http.Response, error) {
 		// Create the request
-		req, errReq := createRequest(ctx, params, clientURL)
+		req, errReq := createRequest(reqCtx, params, clientURL)
 		if errReq != nil {
-			return nil, errReq
+			return nil, nil, errReq
 		}
 		// Close the request after use, i.e. don't reuse the TCP connection
 		req.Close = true
 
-		return httpClient.Do(req)
+		// Execute the request
+		resp, errResp := httpClient.Do(req)
+
+		return req, resp, errResp
 	}, retryLimit)
 	if err != nil {
-		return "", fmt.Errorf("network error in post to get token")
+		return "", err
 	}
 	defer resp.Body.Close()
 
