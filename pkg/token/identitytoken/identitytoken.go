@@ -1,4 +1,4 @@
-// (C) Copyright 2021 Hewlett Packard Enterprise Development LP
+// (C) Copyright 2021-2024 Hewlett Packard Enterprise Development LP
 
 package identitytoken
 
@@ -57,14 +57,15 @@ func GenerateToken(
 		return "", err
 	}
 
-	req, err := http.NewRequestWithContext(ctx, http.MethodPost, url, strings.NewReader(string(b)))
-	if err != nil {
-		return "", err
-	}
-	req.Header.Set("Content-Type", "application/json")
+	resp, err := tokenutil.DoRetries(ctx, func(reqCtx context.Context) (*http.Request, *http.Response, error) {
+		req, errReq := http.NewRequestWithContext(reqCtx, http.MethodPost, url, strings.NewReader(string(b)))
+		if errReq != nil {
+			return nil, nil, errReq
+		}
+		req.Header.Set("Content-Type", "application/json")
+		resp, errResp := httpClient.Do(req)
 
-	resp, err := tokenutil.DoRetries(func() (*http.Response, error) {
-		return httpClient.Do(req)
+		return req, resp, errResp
 	}, retryLimit)
 	if err != nil {
 		return "", err

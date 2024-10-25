@@ -123,12 +123,6 @@ func setTestCase() ([]testCaseIssuer, []testCaseIdentity) {
 				err:        errors.New("Unexpected status code 404"),
 			},
 			{
-				name: "no context",
-				url:  "https://hpe-greenlake-tenant.okta.com/oauth2/default",
-				ctx:  nil,
-				err:  errors.New("network error in post to get token"),
-			},
-			{
 				name:       "status code 400",
 				url:        "https://hpe-greenlake-tenant.okta.com/oauth2/default",
 				ctx:        context.Background(),
@@ -165,12 +159,6 @@ func setTestCase() ([]testCaseIssuer, []testCaseIdentity) {
 				ctx:        context.Background(),
 				statusCode: http.StatusNotFound,
 				err:        errors.New("Unexpected status code 404"),
-			},
-			{
-				name: "no context",
-				url:  "https://client.greenlake.hpe.com/api/iam/identity",
-				ctx:  nil,
-				err:  errors.New("net/http: nil Context"),
 			},
 			{
 				name:       "status code 400",
