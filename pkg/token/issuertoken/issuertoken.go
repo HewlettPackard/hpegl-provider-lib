@@ -40,21 +40,32 @@ func GenerateToken(
 		return "", err
 	}
 
+	// Create a slice of cancel functions to be returned by the retries
+	cancelFuncs := make([]context.CancelFunc, 0)
+
 	// Execute the request, with retries
-	resp, err := tokenutil.DoRetries(ctx, func(reqCtx context.Context) (*http.Request, *http.Response, error) {
-		// Create the request
-		req, errReq := createRequest(reqCtx, params, clientURL)
-		if errReq != nil {
-			return nil, nil, errReq
-		}
-		// Close the request after use, i.e. don't reuse the TCP connection
-		req.Close = true
+	resp, err := tokenutil.DoRetries(
+		ctx,
+		&cancelFuncs,
+		func(reqCtx context.Context) (*http.Request, *http.Response, error) {
+			// Create the request
+			req, errReq := createRequest(reqCtx, params, clientURL)
+			if errReq != nil {
+				return nil, nil, errReq
+			}
+			// Close the request after use, i.e. don't reuse the TCP connection
+			req.Close = true
 
-		// Execute the request
-		resp, errResp := httpClient.Do(req)
+			// Execute the request
+			respFromDo, errResp := httpClient.Do(req)
 
-		return req, resp, errResp
-	}, retryLimit)
+			return req, respFromDo, errResp
+		},
+		retryLimit,
+	)
+	// Defer execution of cancel functions
+	defer executeCancelFuncs(&cancelFuncs)
+
 	if err != nil {
 		return "", err
 	}
@@ -78,6 +89,13 @@ func GenerateToken(
 	}
 
 	return token.AccessToken, nil
+}
+
+// executeCancelFuncs executes all cancel functions in the slice
+func executeCancelFuncs(cancelFuncs *[]context.CancelFunc) {
+	for _, cancel := range *cancelFuncs {
+		cancel()
+	}
 }
 
 // createRequest creates a new http request
