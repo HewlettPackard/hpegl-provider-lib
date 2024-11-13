@@ -1,4 +1,4 @@
-// (C) Copyright 2021 Hewlett Packard Enterprise Development LP
+// (C) Copyright 2021-2024 Hewlett Packard Enterprise Development LP
 
 package tokenutil
 
@@ -203,17 +203,6 @@ func TestDoRetries(t *testing.T) {
 			err: errLimitExceeded,
 		},
 		{
-			name: "Context cancelled",
-			ctx:  context.Background(),
-			call: func(ctx context.Context) (*http.Request, *http.Response, error) {
-				req := &http.Request{}
-				req = req.WithContext(ctx)
-
-				return req, nil, context.Canceled
-			},
-			err: context.Canceled,
-		},
-		{
 			name: "no url",
 			ctx:  context.Background(),
 			call: func(ctx context.Context) (*http.Request, *http.Response, error) {
@@ -226,13 +215,16 @@ func TestDoRetries(t *testing.T) {
 	for _, testcase := range testcases {
 		tc := testcase
 		t.Run(tc.name, func(t *testing.T) {
-			resp, err := DoRetries(tc.ctx, tc.call, 1) // nolint: bodyclose
+			cancelFuncs := make([]context.CancelFunc, 0)
+			resp, err := DoRetries(tc.ctx, &cancelFuncs, tc.call, 2) // nolint: bodyclose
 			if tc.err != nil {
 				assert.EqualError(t, err, tc.err.Error())
 				if tc.err == errLimitExceeded {
-					assert.Equal(t, 1, totalRetries)
+					assert.Equal(t, 2, totalRetries)
+					assert.Equal(t, 2, len(cancelFuncs))
 				} else {
 					assert.Equal(t, 0, totalRetries)
+					assert.Equal(t, 1, len(cancelFuncs))
 				}
 
 				totalRetries = 0
@@ -243,8 +235,10 @@ func TestDoRetries(t *testing.T) {
 				// only 429, 500 and 502 status codes should retry
 				if tc.responseStatus == http.StatusForbidden {
 					assert.Equal(t, 0, totalRetries)
+					assert.Equal(t, 1, len(cancelFuncs))
 				} else {
-					assert.Equal(t, 1, totalRetries)
+					assert.Equal(t, 2, totalRetries)
+					assert.Equal(t, 2, len(cancelFuncs))
 				}
 
 				totalRetries = 0

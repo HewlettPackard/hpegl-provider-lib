@@ -76,7 +76,12 @@ func DecodeAccessToken(rawToken string) (Token, error) {
 	return token, nil
 }
 
-func DoRetries(ctx context.Context, call func(ctx context.Context) (*http.Request, *http.Response, error), retries int) (*http.Response, error) {
+func DoRetries(
+	ctx context.Context,
+	cancelFuncs *[]context.CancelFunc,
+	call func(ctx context.Context) (*http.Request, *http.Response, error),
+	retries int,
+) (*http.Response, error) {
 	var req *http.Request
 	var resp *http.Response
 	var err error
@@ -91,7 +96,9 @@ func DoRetries(ctx context.Context, call func(ctx context.Context) (*http.Reques
 
 		// Create a new context with a timeout
 		ctxWithTimeout, cancel := createContextWithTimeout(ctx)
-		defer cancel()
+
+		// Add the cancel function to the list of cancel functions
+		*cancelFuncs = append(*cancelFuncs, cancel)
 
 		// Execute the request
 		req, resp, err = call(ctxWithTimeout)

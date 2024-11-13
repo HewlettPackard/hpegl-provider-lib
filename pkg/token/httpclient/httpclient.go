@@ -22,7 +22,7 @@ type Client struct {
 
 // New creates a new identity Client object
 func New(identityServiceURL string, vendedServiceClient bool, passedInToken string) *Client {
-	client := &http.Client{Timeout: 10 * time.Second}
+	client := &http.Client{Timeout: 120 * time.Second}
 	identityServiceURL = strings.TrimRight(identityServiceURL, "/")
 
 	return &Client{
