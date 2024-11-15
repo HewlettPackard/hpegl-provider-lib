@@ -8,7 +8,7 @@ jobs:
     runs-on: ubuntu-22.04
     steps:
       - name: Checkout code
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4
 
       - name: Run Trivy vulnerability scanner (go.mod)
         uses: aquasecurity/trivy-action@0.28.0
