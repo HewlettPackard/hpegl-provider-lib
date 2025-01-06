@@ -20,12 +20,12 @@ type Initialisation interface {
 }
 
 // GetServiceSettingsMap helper function for use by client code in NewClient instances
-// This function takes the schema.ResourceData passed in to NewClient, gets the *schema.Set
-// at the key passed in, converts to a list which we know will have just one element,
-// gets that element and converts to map[string]interface{}.  This map holds the
-// settings for the service.  If the block hasn't been set we return an error.
+// This function takes the schema.ResourceData passed in to NewClient, gets the []interface{}
+// at the key passed in which we know will have just one element,gets that element and
+// converts to map[string]interface{}.  This map holds the settings for the service.
+// If the block hasn't been set we return an error.
 func GetServiceSettingsMap(key string, r *schema.ResourceData) (map[string]interface{}, error) {
-	l := r.Get(key).(*schema.Set).List()
+	l := r.Get(key).([]interface{})
 	if len(l) == 0 {
 		return nil, fmt.Errorf("service %s block not defined in hpegl stanza", key)
 	}
