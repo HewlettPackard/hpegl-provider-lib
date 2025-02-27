@@ -5,7 +5,7 @@ go 1.22.1
 toolchain go1.22.5
 
 require (
-	github.com/go-jose/go-jose/v3 v3.0.3
+	github.com/go-jose/go-jose/v3 v3.0.4
 	github.com/golang/mock v1.6.0
 	github.com/golangci/golangci-lint v1.63.4
 	github.com/hashicorp/terraform-plugin-go v0.25.0
