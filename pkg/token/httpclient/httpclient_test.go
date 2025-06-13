@@ -81,7 +81,7 @@ func createTestClient(
 	token interface{},
 	vendedServiceClient bool,
 ) *Client {
-	c := New(identityServiceURL, vendedServiceClient, passedInToken)
+	c := New(identityServiceURL, true, vendedServiceClient, passedInToken)
 	if token == nil {
 		c.httpClient = &testHTTPClient{
 			statusCode: statusCode,

@@ -1,9 +1,11 @@
-// (C) Copyright 2021-2024 Hewlett Packard Enterprise Development LP
+// (C) Copyright 2021-2025 Hewlett Packard Enterprise Development LP
 
 package httpclient
 
 import (
 	"context"
+	"crypto/tls"
+	"net"
 	"net/http"
 	"strings"
 	"time"
@@ -21,16 +23,35 @@ type Client struct {
 }
 
 // New creates a new identity Client object
-func New(identityServiceURL string, vendedServiceClient bool, passedInToken string) *Client {
-	client := &http.Client{Timeout: 120 * time.Second}
+func New(identityServiceURL string, iamInsecure, vendedServiceClient bool, passedInToken string) *Client {
 	identityServiceURL = strings.TrimRight(identityServiceURL, "/")
 
 	return &Client{
 		passedInToken:       passedInToken,
 		identityServiceURL:  identityServiceURL,
-		httpClient:          client,
+		httpClient:          createHttpClient(iamInsecure),
 		vendedServiceClient: vendedServiceClient,
 	}
+}
+
+func createHttpClient(iamInsecure bool) *http.Client {
+	if iamInsecure {
+		// If insecure, we need to set the transport to allow insecure connections
+		transport := &http.Transport{
+			TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
+			DialContext: (&net.Dialer{
+				Timeout:   30 * time.Second,
+				KeepAlive: 30 * time.Second,
+			}).DialContext,
+		}
+		return &http.Client{
+			Transport: transport,
+			Timeout:   120 * time.Second,
+		}
+	}
+
+	// Use the default HTTP client with a timeout
+	return &http.Client{Timeout: 120 * time.Second}
 }
 
 func (c *Client) GenerateToken(ctx context.Context, tenantID, clientID, clientSecret, iamVersion string) (string, error) {
