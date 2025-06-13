@@ -1,4 +1,4 @@
-// (C) Copyright 2021-2024 Hewlett Packard Enterprise Development LP
+// (C) Copyright 2021-2025 Hewlett Packard Enterprise Development LP
 
 package serviceclient
 
@@ -32,6 +32,7 @@ type Handler struct {
 	clientSecret        string
 	iamVersion          string
 	vendedServiceClient bool
+	iamInsecure         bool
 	numRetries          int
 	client              IdentityAPI
 	resultCh            chan common.Result
@@ -63,6 +64,7 @@ func NewHandler(d resourceData, opts ...CreateOpt) (common.TokenChannelInterface
 	// set Handler fields
 	h.iamServiceURL = d.Get("iam_service_url").(string)
 	h.iamVersion = d.Get("iam_version").(string)
+	h.iamInsecure = d.Get("iam_insecure").(bool)
 	h.tenantID = d.Get("tenant_id").(string)
 	h.clientID = d.Get("user_id").(string)
 	h.clientSecret = d.Get("user_secret").(string)
@@ -71,7 +73,7 @@ func NewHandler(d resourceData, opts ...CreateOpt) (common.TokenChannelInterface
 	// get passed-in token, if present
 	passedInToken := d.Get("iam_token").(string)
 
-	h.client = httpc.New(h.iamServiceURL, h.vendedServiceClient, passedInToken)
+	h.client = httpc.New(h.iamServiceURL, h.iamInsecure, h.vendedServiceClient, passedInToken)
 
 	// run overrides
 	for _, opt := range opts {

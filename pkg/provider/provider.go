@@ -1,4 +1,4 @@
-// (C) Copyright 2021-2024 Hewlett Packard Enterprise Development LP
+// (C) Copyright 2021-2025 Hewlett Packard Enterprise Development LP
 
 package provider
 
@@ -108,6 +108,14 @@ func Schema() map[string]*schema.Schema {
 		ValidateFunc: ValidateIAMVersion,
 		Description: `The IAM version to be used.  Can be set by HPEGL_IAM_VERSION env-var. Valid values are: 
 			` + fmt.Sprintf("%v", iamVersionList) + `The default is ` + string(IAMVersionGLCS) + `.`,
+	}
+
+	providerSchema["iam_insecure"] = &schema.Schema{
+		Type:        schema.TypeBool,
+		Optional:    true,
+		DefaultFunc: schema.EnvDefaultFunc("HPEGL_IAM_INSECURE", false),
+		Description: `Don't verify the TLS certificate of the IAM service.  This is not recommended. Defaults to "false"
+			i.e. the TLS certificate is verified.  The value can be set using the HPEGL_IAM_INSECURE env-var.`,
 	}
 
 	providerSchema["api_vended_service_client"] = &schema.Schema{
