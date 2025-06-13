@@ -62,7 +62,7 @@ func NewProviderFunc(reg []registration.ServiceRegistration, pf ConfigureFunc) p
 				if _, ok := providerSchema[service.Name()]; ok {
 					panic(fmt.Sprintf("service name %s is repeated", service.Name()))
 				}
-				providerSchema[service.Name()] = convertToTypeSet(service.ProviderSchemaEntry())
+				providerSchema[service.Name()] = convertToTypeList(service.ProviderSchemaEntry())
 			}
 		}
 
@@ -149,13 +149,17 @@ func ServiceRegistrationSlice(reg registration.ServiceRegistration) []registrati
 	return []registration.ServiceRegistration{reg}
 }
 
-// convertToTypeSet helper function to take the *schema.Resource for a service and convert
-// it into the element type of a TypeSet with exactly one element
-func convertToTypeSet(r *schema.Resource) *schema.Schema {
+// convertToTypeList helper function to take the *schema.Resource for a service and convert
+// it into the element type of a TypeList with exactly one element
+// TODO the V2 SDK doesn't (yet) support TypeMap with Elem *Resource with nested maps
+// This is the currently recommended work-around. See
+// https://github.com/hashicorp/terraform-plugin-sdk/issues/155
+// https://github.com/hashicorp/terraform-plugin-sdk/issues/616
+func convertToTypeList(r *schema.Resource) *schema.Schema {
 	return &schema.Schema{
-		Type:     schema.TypeSet,
+		Type:     schema.TypeList,
 		Optional: true,
-		// Note that we only allow one of these sets, this is very important
+		// Note that we only allow one element in the list, this is very important
 		MaxItems: 1,
 		// We put the *schema.Resource here
 		Elem: r,
